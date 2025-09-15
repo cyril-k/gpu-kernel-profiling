@@ -55,7 +55,7 @@ def build_additive_causal_mask_4d(attn2d: torch.Tensor, *, device, dtype=torch.f
     Returns additive 4D mask [B, 1, S, S] with 0 on valid positions and
     large negative on masked ones (causal + optional padding).
     """
-    assert attn2d is None, "attn2d cannot be None for eager mask construction"
+    assert attn2d is not None, "attn2d cannot be None for eager mask construction"
 
     B, S = attn2d.shape
 
