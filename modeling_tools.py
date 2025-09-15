@@ -158,6 +158,7 @@ class Qwen2Bench:
                     inputs["hidden_states"].grad = None
 
 
+            outdir = "traces_attn"
             os.makedirs(outdir, exist_ok=True)
             trace_path = os.path.join(outdir, f"trace_{self.attn_backend}_L{self.layer_idx}_B{self.batch_size}_S{self.seq_len}")
             if enable_backward:
@@ -171,7 +172,6 @@ class Qwen2Bench:
             warmup_steps = 30
             active_steps = 10
             repeat = 1
-            outdir = "traces_attn"
             sched = schedule(wait=0, warmup=warmup_steps, active=active_steps, repeat=repeat)
             total_steps = (warmup_steps + active_steps) * repeat
 
