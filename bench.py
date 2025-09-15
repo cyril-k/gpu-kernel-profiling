@@ -12,7 +12,6 @@ def main():
     parser.add_argument("--dtype", type=str, choices=["bf16", "fp16", "fp32"], default="bf16")
     parser.add_argument("--layer", type=int, default=0)
     parser.add_argument("--batch", type=int, default=1)
-    # parser.add_argument("--seq", type=int, default=128)
     parser.add_argument("--seq", type=int, nargs="+", default=[512, ])
     parser.add_argument("--warmup", type=int, default=30)
     parser.add_argument("--active", type=int, default=10)
@@ -20,13 +19,14 @@ def main():
     parser.add_argument("--backward", action="store_true")
     parser.add_argument("--outdir", type=str, default="traces_attn")
     parser.add_argument("--compile", action="store_true", help="Wrap the layer with torch.compile.")
+    parser.add_argument("--compile-scope", type=str, choices=["attention", "layer"], default="attention")
     parser.add_argument(
         "--modes",
         nargs="+",
         default=["eager", "sdpa", "fa2"],
         help=(
             "Which implementations to test. "
-            "Supported: eager, sdpa, sdpa_flash, sdpa_mem, sdpa_math, fa2"
+            "Supported: eager, sdpa_cudnn, sdpa_flash, sdpa_mem, sdpa_math, fa2, flex, fa3 (fa3 needs to be installed)"
         ),
     )
     args = parser.parse_args()
@@ -38,8 +38,7 @@ def main():
     for seq_len in args.seq:
         for attn_backend in args.modes:
             results.append(bench.run(
-                mode="layer",
-                # mode="attention",
+                mode=args.compile_scope,
                 attn_backend=attn_backend,
                 seq_len=seq_len,
                 enable_compile=args.compile,
