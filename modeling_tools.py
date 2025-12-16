@@ -6,6 +6,7 @@ from contextlib import nullcontext, contextmanager
 import torch
 import torch.nn.functional as F
 from torch.profiler import profile, ProfilerActivity, schedule, record_function
+from torch.nn.attention import activate_flash_attention_impl
 from transformers import AutoModelForCausalLM
 import gc
 import threading
@@ -30,6 +31,7 @@ ATTN_ALIASES = {
     "sdpa_flash": "sdpa",
     "sdpa_mem": "sdpa",
     "sdpa_math": "sdpa",
+    "sdpa_fa4": "sdpa",
     "flex": "flex_attention",
 }
 
@@ -38,6 +40,7 @@ SDPA_IMPL = {
     "sdpa_mem": SDPBackend.EFFICIENT_ATTENTION,
     "sdpa_math": SDPBackend.MATH,
     "sdpa_cudnn": SDPBackend.CUDNN_ATTENTION,
+    "sdpa_fa4": SDPBackend.FLASH_ATTENTION,
 }
 
 def cleanup_torch_compile():
@@ -300,6 +303,8 @@ class Qwen2Bench:
     def enable_attn_backend(self):
         self.model.set_attn_implementation(ATTN_ALIASES[self.attn_backend])
         if self.attn_backend.startswith("sdpa"):
+            if self.attn_backend.startswith("sdpa_fa4"):
+                activate_flash_attention_impl("FA4")
             ctx = sdpa_kernel(SDPA_IMPL[self.attn_backend])
         else:
             ctx = nullcontext()
@@ -309,5 +314,6 @@ class Qwen2Bench:
                 yield c
         finally:
             self.model.set_attn_implementation("eager")
+
 
 
