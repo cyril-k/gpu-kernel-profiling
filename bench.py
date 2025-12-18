@@ -43,6 +43,7 @@ def main():
                 seq_len=seq_len,
                 enable_compile=args.compile,
                 enable_backward=args.backward,
+                outdir=args.outdir,
             ))
 
     # Pretty summary
