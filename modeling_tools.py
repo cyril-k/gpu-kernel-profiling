@@ -98,6 +98,7 @@ class Qwen2Bench:
         enable_backward: bool,
         enable_compile: bool,
         batch_size: int = 1,
+        outdir: str = "traces_attn",
     ):
         assert mode in ["layer", "attention"]
 
@@ -161,7 +162,6 @@ class Qwen2Bench:
                     inputs["hidden_states"].grad = None
 
 
-            outdir = "traces_attn"
             os.makedirs(outdir, exist_ok=True)
             trace_path = os.path.join(outdir, f"trace_{self.attn_backend}_L{self.layer_idx}_B{self.batch_size}_S{self.seq_len}")
             if enable_backward:
